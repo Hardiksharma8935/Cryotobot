@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Jarvis Crypto AI</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: var(--tg-theme-bg-color, #0b0e11);
+            color: var(--tg-theme-text-color, #ffffff);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding-bottom: 70px; /* Space for bottom nav */
+        }
+        .glass-panel {
+            background: rgba(30, 35, 41, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .nav-item.active { color: #fcd535; } /* Binance Yellow */
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <header class="p-4 flex justify-between items-center border-b border-gray-800">
+        <h1 class="text-xl font-bold tracking-wider">JARVIS <span class="text-yellow-400">AI</span></h1>
+        <div id="user-greeting" class="text-sm text-gray-400">Loading...</div>
+    </header>
+
+    <main class="flex-1 p-4 overflow-y-auto" id="main-content">
+        
+        <div class="grid grid-cols-2 gap-4 mb-6">
+            <div class="glass-panel p-4 rounded-xl">
+                <p class="text-xs text-gray-400">BTC/USDT</p>
+                <p class="text-lg font-bold text-green-400">$64,230.50</p>
+            </div>
+            <div class="glass-panel p-4 rounded-xl">
+                <p class="text-xs text-gray-400">ETH/USDT</p>
+                <p class="text-lg font-bold text-red-400">$3,450.10</p>
+            </div>
+        </div>
+
+        <div class="glass-panel p-5 rounded-xl mb-6">
+            <h2 class="text-sm font-bold text-yellow-400 mb-2">⚡ AI Market Outlook</h2>
+            <p class="text-sm text-gray-300">Market is currently showing neutral-to-bullish structure. BTC holding above the 4H 200 EMA. Liquidity resting at $65,500.</p>
+        </div>
+
+    </main>
+
+    <nav class="fixed bottom-0 w-full glass-panel flex justify-around items-center p-3 text-xs text-gray-500 border-t border-gray-800">
+        <div class="flex flex-col items-center nav-item active" onclick="switchTab('Dashboard')">
+            <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+            Dashboard
+        </div>
+        <div class="flex flex-col items-center nav-item" onclick="switchTab('Markets')">
+            <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path></svg>
+            Markets
+        </div>
+        <div class="flex flex-col items-center nav-item" onclick="switchTab('AI')">
+            <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+            AI Analysis
+        </div>
+        <div class="flex flex-col items-center nav-item" onclick="switchTab('Portfolio')">
+            <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+            Portfolio
+        </div>
+    </nav>
+
+    <script>
+        // Initialize Telegram WebApp
+        const tg = window.Telegram.WebApp;
+        tg.expand(); // Opens the app in full screen inside Telegram
+
+        // Display User's Name
+        if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+            document.getElementById('user-greeting').innerText = 'Hi, ' + tg.initDataUnsafe.user.first_name;
+        }
+
+        // Simple Tab Switching Logic
+        function switchTab(tabName) {
+            tg.HapticFeedback.impactOccurred('light');
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active', 'text-yellow-400'));
+            event.currentTarget.classList.add('active', 'text-yellow-400');
+            // Logic to load different content will go here
+        }
+    </script>
+</body>
+</html>
