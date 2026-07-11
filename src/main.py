@@ -1,33 +1,31 @@
 import asyncio
+import httpx
 from fastapi import FastAPI, Request
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 from telegram.ext import Application, CommandHandler, ContextTypes
 from src.config import settings
 from contextlib import asynccontextmanager
 
-# Yeh line Python ko batati hai ki HTML files 'templates' folder me hain
 templates = Jinja2Templates(directory="templates")
 
 # --- TELEGRAM BOT LOGIC ---
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    # YAHAN APNA ASLI RAILWAY LINK DAALEIN
+    # Ensure your Railway URL is correct here
     webapp_url = "https://cryotobot-production.up.railway.app/" 
     
-    # Yeh code ek button banata hai
     keyboard = [
         [InlineKeyboardButton("Launch Jarvis AI 🚀", web_app=WebAppInfo(url=webapp_url))]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     
-    # Yeh code wo button user ko bhejta hai
     await update.message.reply_text(
         "Welcome to the Jarvis Trading Terminal.\nClick below to open the Mini App.",
         reply_markup=reply_markup
     )
 
-# --- FASTAPI SERVER LOGIC (Background Process) ---
+# --- FASTAPI SERVER LOGIC ---
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     if settings.TELEGRAM_BOT_TOKEN != "test_token":
@@ -46,7 +44,32 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title=settings.PROJECT_NAME, lifespan=lifespan)
 
-# Yeh endpoint browser ya Telegram me HTML page dikhane ka kaam karta hai
+# Route 1: Serves the WebApp UI
 @app.get("/", response_class=HTMLResponse)
 async def render_mini_app(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
+
+# Route 2: Real-time Market Data API
+@app.get("/api/market-data")
+async def get_market_data():
+    # Fetching top coins for the dashboard
+    symbols = '["BTCUSDT","ETHUSDT","SOLUSDT","BNBUSDT","XRPUSDT","ADAUSDT"]'
+    url = f"https://api.binance.com/api/v3/ticker/24hr?symbols={symbols}"
+    
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(url)
+            data = response.json()
+            
+            # Format the data cleanly for the frontend
+            formatted_data = []
+            for item in data:
+                formatted_data.append({
+                    "symbol": item["symbol"].replace("USDT", "/USDT"),
+                    "price": float(item["lastPrice"]),
+                    "changePercent": float(item["priceChangePercent"]),
+                    "volume": float(item["volume"])
+                })
+            return JSONResponse(content={"status": "success", "data": formatted_data})
+    except Exception as e:
+        return JSONResponse(content={"status": "error", "message": str(e)}, status_code=500)
