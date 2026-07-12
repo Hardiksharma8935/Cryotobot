@@ -7,18 +7,8 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body {
-            background-color: #0b0e11;
-            color: #ffffff;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            margin: 0;
-            padding-bottom: 70px;
-        }
-        .glass-panel {
-            background: rgba(30, 35, 41, 0.8);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
+        body { background-color: #0b0e11; color: #ffffff; font-family: -apple-system, sans-serif; padding-bottom: 70px; }
+        .glass-panel { background: rgba(30, 35, 41, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.05); }
         .nav-item.active { color: #fcd535; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
@@ -33,40 +23,49 @@
 
     <main class="flex-1 p-4 overflow-y-auto">
         
+        <!-- DASHBOARD TAB -->
         <div id="tab-Dashboard" class="tab-content active">
-            <h2 class="text-lg font-bold mb-4">Portfolio Overview</h2>
+            <h2 class="text-lg font-bold mb-4">Market Overview</h2>
             <div id="dashboard-prices" class="grid grid-cols-2 gap-4 mb-6">
-                <div class="text-center text-gray-500 text-sm py-4 col-span-2">Fetching live market data...</div>
+                <div class="text-center text-gray-500 text-sm py-4 col-span-2">Fetching live prices...</div>
             </div>
 
-            <div class="glass-panel p-5 rounded-xl mb-6 border-l-4 border-yellow-400">
-                <h2 class="text-sm font-bold mb-2">⚡ System Status</h2>
-                <p class="text-sm text-gray-300">Live data feed connected. AI modules standing by for deployment.</p>
+            <!-- NEWS SECTION -->
+            <h2 class="text-lg font-bold mb-4 flex items-center">
+                <svg class="w-5 h-5 mr-2 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path></svg>
+                Breaking News & Intel
+            </h2>
+            <div id="news-container" class="space-y-4 mb-6">
+                <div class="text-center text-gray-500 text-sm py-4">Scanning crypto networks...</div>
             </div>
         </div>
 
+        <!-- MARKETS TAB -->
         <div id="tab-Markets" class="tab-content">
-            <h2 class="text-lg font-bold mb-4">Market Heatmap</h2>
+            <h2 class="text-lg font-bold mb-4">Top Movers</h2>
             <div class="glass-panel rounded-xl overflow-hidden">
                 <table class="w-full text-left text-sm">
                     <thead class="bg-gray-800 text-gray-400">
-                        <tr>
-                            <th class="p-3">Coin</th>
-                            <th class="p-3">Price</th>
-                            <th class="p-3 text-right">24h Chg</th>
-                        </tr>
+                        <tr><th class="p-3">Coin</th><th class="p-3">Price</th><th class="p-3 text-right">24h Chg</th></tr>
                     </thead>
-                    <tbody id="market-list">
-                        </tbody>
+                    <tbody id="market-list"></tbody>
                 </table>
             </div>
         </div>
         
-        <div id="tab-AI" class="tab-content text-center py-10 text-gray-500">AI Engine Initializing...</div>
-        <div id="tab-Portfolio" class="tab-content text-center py-10 text-gray-500">Connecting to Exchanges...</div>
+        <!-- AI & PORTFOLIO TABS (Under Construction) -->
+        <div id="tab-AI" class="tab-content text-center py-20">
+            <h2 class="text-xl font-bold text-yellow-400 mb-2">AI Module Loading</h2>
+            <p class="text-sm text-gray-500">Kittu, this module requires complex technical indicators. It is currently under development.</p>
+        </div>
+        <div id="tab-Portfolio" class="tab-content text-center py-20">
+            <h2 class="text-xl font-bold text-yellow-400 mb-2">Exchange Sync</h2>
+            <p class="text-sm text-gray-500">API integrations for Binance, Bybit, and OKX will be deployed here soon.</p>
+        </div>
 
     </main>
 
+    <!-- BOTTOM NAV -->
     <nav class="fixed bottom-0 w-full bg-[#1e2329] flex justify-around items-center p-3 text-xs text-gray-500 border-t border-gray-800 z-50">
         <div class="flex flex-col items-center nav-item active cursor-pointer" onclick="switchTab('Dashboard')">
             <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
@@ -89,78 +88,66 @@
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
-
         if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
             document.getElementById('user-greeting').innerText = 'Hi, ' + tg.initDataUnsafe.user.first_name;
         }
 
         function switchTab(tabName) {
             tg.HapticFeedback.impactOccurred('light');
-            
-            // Update UI buttons
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active', 'text-yellow-400'));
             event.currentTarget.classList.add('active', 'text-yellow-400');
-            
-            // Hide all tabs, show selected
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.getElementById('tab-' + tabName).classList.add('active');
         }
 
-        // Fetch Live Data from our FastAPI backend
         async function fetchMarketData() {
             try {
                 const response = await fetch('/api/market-data');
                 const result = await response.json();
-                
                 if (result.status === "success") {
-                    updateDashboardUI(result.data);
-                    updateMarketsUI(result.data);
+                    const dbContainer = document.getElementById('dashboard-prices');
+                    dbContainer.innerHTML = '';
+                    result.data.slice(0, 2).forEach(coin => {
+                        const color = coin.changePercent >= 0 ? 'text-green-400' : 'text-red-400';
+                        dbContainer.innerHTML += `<div class="glass-panel p-4 rounded-xl"><p class="text-xs text-gray-400">${coin.symbol}</p><p class="text-lg font-bold ${color}">$${coin.price.toLocaleString()}</p></div>`;
+                    });
+
+                    const mktContainer = document.getElementById('market-list');
+                    mktContainer.innerHTML = '';
+                    result.data.forEach(coin => {
+                        const color = coin.changePercent >= 0 ? 'text-green-400' : 'text-red-400';
+                        mktContainer.innerHTML += `<tr class="border-b border-gray-800"><td class="p-3 font-bold">${coin.symbol.split('/')[0]}</td><td class="p-3">$${coin.price.toLocaleString()}</td><td class="p-3 text-right ${color}">${coin.changePercent.toFixed(2)}%</td></tr>`;
+                    });
                 }
-            } catch (error) {
-                console.error("Error fetching data:", error);
-            }
+            } catch (e) { console.error(e); }
         }
 
-        function updateDashboardUI(data) {
-            const container = document.getElementById('dashboard-prices');
-            container.innerHTML = ''; // Clear loading text
-            
-            // Only show top 2 for dashboard widget
-            data.slice(0, 2).forEach(coin => {
-                const colorClass = coin.changePercent >= 0 ? 'text-green-400' : 'text-red-400';
-                const formattedPrice = coin.price.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
-                
-                container.innerHTML += `
-                    <div class="glass-panel p-4 rounded-xl">
-                        <p class="text-xs text-gray-400">${coin.symbol}</p>
-                        <p class="text-lg font-bold ${colorClass}">${formattedPrice}</p>
-                    </div>
-                `;
-            });
+        async function fetchNews() {
+            try {
+                const response = await fetch('/api/news');
+                const result = await response.json();
+                if (result.status === "success") {
+                    const container = document.getElementById('news-container');
+                    container.innerHTML = '';
+                    result.data.forEach(news => {
+                        container.innerHTML += `
+                            <a href="${news.url}" target="_blank" class="block glass-panel p-3 rounded-xl flex gap-3 hover:bg-gray-800 transition">
+                                <img src="${news.image}" class="w-16 h-16 rounded-lg object-cover" alt="news">
+                                <div>
+                                    <h3 class="text-sm font-bold text-gray-200 line-clamp-2">${news.title}</h3>
+                                    <p class="text-xs text-gray-500 mt-1">${news.source}</p>
+                                </div>
+                            </a>
+                        `;
+                    });
+                }
+            } catch (e) { console.error(e); }
         }
 
-        function updateMarketsUI(data) {
-            const container = document.getElementById('market-list');
-            container.innerHTML = '';
-            
-            data.forEach(coin => {
-                const colorClass = coin.changePercent >= 0 ? 'text-green-400' : 'text-red-400';
-                const sign = coin.changePercent >= 0 ? '+' : '';
-                const formattedPrice = coin.price.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 });
-                
-                container.innerHTML += `
-                    <tr class="border-b border-gray-800">
-                        <td class="p-3 font-bold">${coin.symbol.split('/')[0]}</td>
-                        <td class="p-3">${formattedPrice}</td>
-                        <td class="p-3 text-right ${colorClass}">${sign}${coin.changePercent.toFixed(2)}%</td>
-                    </tr>
-                `;
-            });
-        }
-
-        // Fetch immediately, then update every 10 seconds
         fetchMarketData();
-        setInterval(fetchMarketData, 10000);
+        fetchNews();
+        setInterval(fetchMarketData, 10000); // Prices update every 10s
+        setInterval(fetchNews, 60000); // News updates every 60s
     </script>
 </body>
 </html>

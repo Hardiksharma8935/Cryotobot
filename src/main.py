@@ -12,7 +12,7 @@ templates = Jinja2Templates(directory="templates")
 
 # --- TELEGRAM BOT LOGIC ---
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    # Ensure your Railway URL is correct here
+    # Aapka exact Railway WebApp URL
     webapp_url = "https://cryotobot-production.up.railway.app/" 
     
     keyboard = [
@@ -49,10 +49,9 @@ app = FastAPI(title=settings.PROJECT_NAME, lifespan=lifespan)
 async def render_mini_app(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
-# Route 2: Real-time Market Data API
+# Route 2: Real-time Market Data API (Binance)
 @app.get("/api/market-data")
 async def get_market_data():
-    # Fetching top coins for the dashboard
     symbols = '["BTCUSDT","ETHUSDT","SOLUSDT","BNBUSDT","XRPUSDT","ADAUSDT"]'
     url = f"https://api.binance.com/api/v3/ticker/24hr?symbols={symbols}"
     
@@ -61,7 +60,6 @@ async def get_market_data():
             response = await client.get(url)
             data = response.json()
             
-            # Format the data cleanly for the frontend
             formatted_data = []
             for item in data:
                 formatted_data.append({
@@ -71,5 +69,27 @@ async def get_market_data():
                     "volume": float(item["volume"])
                 })
             return JSONResponse(content={"status": "success", "data": formatted_data})
+    except Exception as e:
+        return JSONResponse(content={"status": "error", "message": str(e)}, status_code=500)
+
+# Route 3: Live Crypto News API (CryptoCompare)
+@app.get("/api/news")
+async def get_crypto_news():
+    url = "https://min-api.cryptocompare.com/data/v2/news/?lang=EN"
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(url)
+            data = response.json()
+            
+            formatted_news = []
+            # Hum top 5 latest news nikalenge
+            for item in data.get('Data', [])[:5]:
+                formatted_news.append({
+                    "title": item["title"],
+                    "source": item["source_info"]["name"],
+                    "url": item["url"],
+                    "image": item["imageurl"]
+                })
+            return JSONResponse(content={"status": "success", "data": formatted_news})
     except Exception as e:
         return JSONResponse(content={"status": "error", "message": str(e)}, status_code=500)
