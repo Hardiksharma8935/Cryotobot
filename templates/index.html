@@ -53,7 +53,7 @@
             </div>
         </div>
         
-        <!-- AI & PORTFOLIO TABS (Under Construction) -->
+        <!-- AI & PORTFOLIO TABS -->
         <div id="tab-AI" class="tab-content text-center py-20">
             <h2 class="text-xl font-bold text-yellow-400 mb-2">AI Module Loading</h2>
             <p class="text-sm text-gray-500">Kittu, this module requires complex technical indicators. It is currently under development.</p>
@@ -68,7 +68,7 @@
     <!-- BOTTOM NAV -->
     <nav class="fixed bottom-0 w-full bg-[#1e2329] flex justify-around items-center p-3 text-xs text-gray-500 border-t border-gray-800 z-50">
         <div class="flex flex-col items-center nav-item active cursor-pointer" onclick="switchTab('Dashboard')">
-            <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+            <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 0h6"></path></svg>
             Dashboard
         </div>
         <div class="flex flex-col items-center nav-item cursor-pointer" onclick="switchTab('Markets')">
@@ -104,35 +104,42 @@
             try {
                 const response = await fetch('/api/market-data');
                 const result = await response.json();
-                if (result.status === "success") {
-                    const dbContainer = document.getElementById('dashboard-prices');
+                const dbContainer = document.getElementById('dashboard-prices');
+                const mktContainer = document.getElementById('market-list');
+
+                if (result.status === "success" && result.data.length > 0) {
                     dbContainer.innerHTML = '';
                     result.data.slice(0, 2).forEach(coin => {
                         const color = coin.changePercent >= 0 ? 'text-green-400' : 'text-red-400';
-                        dbContainer.innerHTML += `<div class="glass-panel p-4 rounded-xl"><p class="text-xs text-gray-400">${coin.symbol}</p><p class="text-lg font-bold ${color}">$${coin.price.toLocaleString()}</p></div>`;
+                        dbContainer.innerHTML += `<div class="glass-panel p-4 rounded-xl"><p class="text-xs text-gray-400">${coin.symbol}</p><p class="text-lg font-bold ${color}">$${coin.price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p></div>`;
                     });
 
-                    const mktContainer = document.getElementById('market-list');
                     mktContainer.innerHTML = '';
                     result.data.forEach(coin => {
                         const color = coin.changePercent >= 0 ? 'text-green-400' : 'text-red-400';
-                        mktContainer.innerHTML += `<tr class="border-b border-gray-800"><td class="p-3 font-bold">${coin.symbol.split('/')[0]}</td><td class="p-3">$${coin.price.toLocaleString()}</td><td class="p-3 text-right ${color}">${coin.changePercent.toFixed(2)}%</td></tr>`;
+                        mktContainer.innerHTML += `<tr class="border-b border-gray-800"><td class="p-3 font-bold">${coin.symbol.split('/')[0]}</td><td class="p-3">$${coin.price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 4})}</td><td class="p-3 text-right ${color}">${coin.changePercent.toFixed(2)}%</td></tr>`;
                     });
+                } else {
+                    dbContainer.innerHTML = `<div class="col-span-2 text-center text-red-400 text-sm p-4">Error: Data format issue or rate limit.</div>`;
+                    mktContainer.innerHTML = `<tr><td colspan="3" class="p-3 text-center text-red-400">Error loading markets.</td></tr>`;
                 }
-            } catch (e) { console.error(e); }
+            } catch (e) { 
+                document.getElementById('dashboard-prices').innerHTML = `<div class="col-span-2 text-center text-red-400 text-sm p-4">Connection Failed. Retrying...</div>`;
+            }
         }
 
         async function fetchNews() {
             try {
                 const response = await fetch('/api/news');
                 const result = await response.json();
-                if (result.status === "success") {
-                    const container = document.getElementById('news-container');
+                const container = document.getElementById('news-container');
+
+                if (result.status === "success" && result.data.length > 0) {
                     container.innerHTML = '';
                     result.data.forEach(news => {
                         container.innerHTML += `
                             <a href="${news.url}" target="_blank" class="block glass-panel p-3 rounded-xl flex gap-3 hover:bg-gray-800 transition">
-                                <img src="${news.image}" class="w-16 h-16 rounded-lg object-cover" alt="news">
+                                <img src="${news.image}" class="w-16 h-16 rounded-lg object-cover" alt="news" onerror="this.style.display='none'">
                                 <div>
                                     <h3 class="text-sm font-bold text-gray-200 line-clamp-2">${news.title}</h3>
                                     <p class="text-xs text-gray-500 mt-1">${news.source}</p>
@@ -140,14 +147,18 @@
                             </a>
                         `;
                     });
+                } else {
+                    container.innerHTML = `<div class="text-center text-red-400 text-sm py-4">News feed unavailable right now.</div>`;
                 }
-            } catch (e) { console.error(e); }
+            } catch (e) { 
+                document.getElementById('news-container').innerHTML = `<div class="text-center text-red-400 text-sm py-4">Failed to fetch news.</div>`;
+            }
         }
 
         fetchMarketData();
         fetchNews();
-        setInterval(fetchMarketData, 10000); // Prices update every 10s
-        setInterval(fetchNews, 60000); // News updates every 60s
+        setInterval(fetchMarketData, 10000); 
+        setInterval(fetchNews, 60000); 
     </script>
 </body>
 </html>

@@ -33,7 +33,6 @@ async def lifespan(app: FastAPI):
         
         await bot_app.initialize()
         await bot_app.start()
-        # Nayi line: drop_pending_updates=True (Telegram conflict error fix karega)
         task = asyncio.create_task(bot_app.updater.start_polling(drop_pending_updates=True))
         yield
         await bot_app.updater.stop()
@@ -48,40 +47,34 @@ app = FastAPI(title=settings.PROJECT_NAME, lifespan=lifespan)
 async def render_mini_app(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
-# Route 2: Crypto Prices (CryptoCompare API - Avoids US IP Block)
+# Route 2: Crypto Prices (CoinCap API - 100% Free & Reliable)
 @app.get("/api/market-data")
 async def get_market_data():
-    url = "https://min-api.cryptocompare.com/data/pricemultifull?fsyms=BTC,ETH,SOL,BNB,XRP,ADA&tsyms=USD"
-    # Header add kiya taaki bot block na ho
-    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
+    url = "https://api.coincap.io/v2/assets?limit=10"
     try:
         async with httpx.AsyncClient() as client:
-            response = await client.get(url, headers=headers)
+            response = await client.get(url, timeout=10.0)
             data = response.json()
             
             formatted_data = []
-            if "RAW" in data:
-                for coin, info in data["RAW"].items():
-                    usd_info = info["USD"]
-                    formatted_data.append({
-                        "symbol": f"{coin}/USDT",
-                        "price": float(usd_info["PRICE"]),
-                        "changePercent": float(usd_info["CHANGEPCT24HOUR"]),
-                        "volume": float(usd_info["VOLUME24HOUR"])
-                    })
+            for item in data.get("data", []):
+                formatted_data.append({
+                    "symbol": f"{item['symbol']}/USD",
+                    "price": float(item['priceUsd']),
+                    "changePercent": float(item['changePercent24Hr'])
+                })
             return JSONResponse(content={"status": "success", "data": formatted_data})
     except Exception as e:
-        print(f"Market Data Error: {e}")
         return JSONResponse(content={"status": "error", "message": str(e)}, status_code=500)
 
-# Route 3: Live Crypto News
+# Route 3: Live Crypto News (CryptoCompare API)
 @app.get("/api/news")
 async def get_crypto_news():
     url = "https://min-api.cryptocompare.com/data/v2/news/?lang=EN"
     headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
     try:
         async with httpx.AsyncClient() as client:
-            response = await client.get(url, headers=headers)
+            response = await client.get(url, headers=headers, timeout=10.0)
             data = response.json()
             
             formatted_news = []
@@ -94,5 +87,4 @@ async def get_crypto_news():
                 })
             return JSONResponse(content={"status": "success", "data": formatted_news})
     except Exception as e:
-        print(f"News API Error: {e}")
         return JSONResponse(content={"status": "error", "message": str(e)}, status_code=500)
